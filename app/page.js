@@ -42,15 +42,24 @@ export default function Home() {
     return null;
   };
 
-  const handleRatingSelected = async (rating) => {
+  const handleRatingSelected = (rating) => {
     const newFeedback = { ...feedback, rating };
     setFeedback(newFeedback);
-    const recordId = await submitFeedback(newFeedback);
-    if (recordId) {
-      setFeedback((prev) => ({ ...prev, recordId }));
-    }
+    // Submit feedback asynchronously – fire-and-forget.
+    submitFeedback(newFeedback)
+      .then((recordId) => {
+        if (recordId) {
+          setFeedback((prev) => ({ ...prev, recordId }));
+        }
+      })
+      .catch((error) => {
+        // Show a toast notification for error
+        showToast("Feedback submission failed");
+      });
+    // Immediately go to the next stage.
     setStage("reason");
   };
+  
 
   const handleReasonsSubmitted = async ({ selectedReasons, customReason }) => {
     const newFeedback = { ...feedback, reasons: selectedReasons, customReason };
