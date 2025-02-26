@@ -45,7 +45,7 @@ export default function Home() {
   const handleRatingSelected = (rating) => {
     const newFeedback = { ...feedback, rating };
     setFeedback(newFeedback);
-    // Submit feedback asynchronously – fire-and-forget.
+    // Fire-and-forget: submit feedback without delaying UI transition.
     submitFeedback(newFeedback)
       .then((recordId) => {
         if (recordId) {
@@ -53,25 +53,29 @@ export default function Home() {
         }
       })
       .catch((error) => {
-        // Show a toast notification for error
-        showToast("Feedback submission failed");
+        console.error("Feedback submission failed", error);
       });
-    // Immediately go to the next stage.
+    // Immediately move to the next stage.
     setStage("reason");
   };
-  
 
-  const handleReasonsSubmitted = async ({ selectedReasons, customReason }) => {
+  const handleReasonsSubmitted = ({ selectedReasons, customReason }) => {
     const newFeedback = { ...feedback, reasons: selectedReasons, customReason };
     setFeedback(newFeedback);
-    const recordId = await submitFeedback(newFeedback);
-    if (recordId) {
-      setFeedback((prev) => ({ ...prev, recordId }));
-    }
+    // Fire-and-forget the submission.
+    submitFeedback(newFeedback)
+      .then((recordId) => {
+        if (recordId) {
+          setFeedback((prev) => ({ ...prev, recordId }));
+        }
+      })
+      .catch((error) => {
+        console.error("Feedback submission failed", error);
+      });
     setStage("additional");
   };
 
-  const handleFollowupSubmitted = async (data) => {
+  const handleFollowupSubmitted = (data) => {
     // Data now contains three separate fields.
     const newFeedback = {
       ...feedback,
@@ -80,20 +84,32 @@ export default function Home() {
       improvement: data.improvement,
     };
     setFeedback(newFeedback);
-    const recordId = await submitFeedback(newFeedback);
-    if (recordId) {
-      setFeedback((prev) => ({ ...prev, recordId }));
-    }
+    // Fire-and-forget the submission.
+    submitFeedback(newFeedback)
+      .then((recordId) => {
+        if (recordId) {
+          setFeedback((prev) => ({ ...prev, recordId }));
+        }
+      })
+      .catch((error) => {
+        console.error("Feedback submission failed", error);
+      });
     // Remain in "additional" stage until contact info is submitted.
   };
 
-  const handleContactSubmitted = async ({ contact, interests }) => {
+  const handleContactSubmitted = ({ contact, interests }) => {
     const newFeedback = { ...feedback, contact, interests };
     setFeedback(newFeedback);
-    const recordId = await submitFeedback(newFeedback);
-    if (recordId) {
-      setFeedback((prev) => ({ ...prev, recordId }));
-    }
+    // Fire-and-forget the submission.
+    submitFeedback(newFeedback)
+      .then((recordId) => {
+        if (recordId) {
+          setFeedback((prev) => ({ ...prev, recordId }));
+        }
+      })
+      .catch((error) => {
+        console.error("Feedback submission failed", error);
+      });
     setStage("thankyou");
   };
 
