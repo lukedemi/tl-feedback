@@ -23,7 +23,23 @@ function transformDataToText(data) {
 export async function POST(request) {
   try {
     const data = await request.json();
-    console.log("Feedback received:", data);
+
+    // Extract metadata from request headers
+    const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
+    const userAgent = request.headers.get("user-agent") || "unknown";
+    const referer = request.headers.get("referer") || "unknown";
+    
+    // Add a timestamp and use the referer as the current page URL
+    const timestamp = new Date().toISOString();
+    const currentPageUrl = referer; // Assuming the referer header represents the current page URL
+
+    // Build the user metadata string
+    const userMetadata = `IP: ${ip}; User Agent: ${userAgent}; Referer: ${referer}; Timestamp: ${timestamp}; Current Page URL: ${currentPageUrl}`;
+
+    // Append metadata to the data payload
+    data["user metadata"] = userMetadata;
+
+    console.log("Feedback received with metadata:", data);
 
     // Read Airtable configuration from environment variables
     const airtablePat = process.env.AIRTABLE_PERSONAL_ACCESS_TOKEN;
