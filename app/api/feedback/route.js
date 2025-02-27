@@ -22,26 +22,34 @@ function transformDataToText(data) {
 
 export async function POST(request) {
   try {
+    // Parse JSON payload from the request body.
     const data = await request.json();
 
-    // Extract metadata from request headers
+    // Extract query parameters from the URL.
+    const { searchParams } = new URL(request.url);
+    const queryParams = {};
+    for (const [key, value] of searchParams.entries()) {
+      queryParams[key] = value;
+    }
+    // Store query parameters as a JSON string in a separate field.
+    data["query params"] = JSON.stringify(queryParams);
+
+    // Extract metadata from request headers.
     const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
     const userAgent = request.headers.get("user-agent") || "unknown";
     const referer = request.headers.get("referer") || "unknown";
     
-    // Add a timestamp and use the referer as the current page URL
+    // Add a timestamp and assume the referer represents the current page URL.
     const timestamp = new Date().toISOString();
-    const currentPageUrl = referer; // Assuming the referer header represents the current page URL
+    const currentPageUrl = referer;
 
-    // Build the user metadata string
+    // Build the user metadata string.
     const userMetadata = `IP: ${ip}; User Agent: ${userAgent}; Referer: ${referer}; Timestamp: ${timestamp}; Current Page URL: ${currentPageUrl}`;
-
-    // Append metadata to the data payload
     data["user metadata"] = userMetadata;
 
-    console.log("Feedback received with metadata:", data);
+    console.log("Feedback received with metadata and query params:", data);
 
-    // Read Airtable configuration from environment variables
+    // Read Airtable configuration from environment variables.
     const airtablePat = process.env.AIRTABLE_PERSONAL_ACCESS_TOKEN;
     const airtableBaseId = process.env.AIRTABLE_BASE_ID;
     const airtableTableName = process.env.AIRTABLE_TABLE_NAME;
@@ -53,17 +61,17 @@ export async function POST(request) {
     // Transform all data fields to simple text.
     const transformedData = transformDataToText(data);
 
-    // Set the API URL for the table
+    // Set the API URL for the table.
     let url = `https://api.airtable.com/v0/${airtableBaseId}/${encodeURIComponent(airtableTableName)}`;
     let method = "POST";
 
-    // If data contains a recordId, we update (PATCH) the existing record.
+    // If data contains a recordId, update (PATCH) the existing record.
     if (data.recordId) {
       method = "PATCH";
       url = `${url}/${data.recordId}`;
     }
 
-    // Prepare payload for Airtable using the transformed data
+    // Prepare payload for Airtable using the transformed data.
     const airtablePayload = {
       fields: transformedData,
     };

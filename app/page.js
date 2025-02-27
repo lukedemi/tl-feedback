@@ -30,7 +30,8 @@ export default function Home() {
 
   // Submit the entire feedback object to the backend.
   const submitFeedback = async (currentFeedback) => {
-    const res = await fetch("/api/feedback", {
+    const queryString = window.location.search; // gets ?utm_source=... etc.
+    const res = await fetch("/api/feedback" + queryString, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(currentFeedback),
